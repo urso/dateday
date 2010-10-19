@@ -1,0 +1,19 @@
+Name:                dateday
+Version:             0.0.1
+Synopsis:            Find Day Of Week for a given Date
+Description:         Computes the day of week using the gregorian calendar
+License:             BSD3
+License-file:        LICENSE
+Author:              Steffen Siering
+Maintainer:          steffen dot siering at gmail com
+Category:            Data
+
+Build-type:          Simple
+
+Cabal-version:       >=1.2
+
+
+Library
+  Exposed-modules:     Data.Time.DayOfWeek
+  Build-depends:       time == 1.*, base == 4.*
+  
