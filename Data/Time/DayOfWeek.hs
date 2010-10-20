@@ -1,4 +1,3 @@
-
 module Data.Time.DayOfWeek(Gregorian, DayOfWeek(..), 
                            toNextDayOfWeek, 
                            gregorianToNextDayOfWeek,
@@ -12,6 +11,12 @@ data DayOfWeek = Sunday | Monday | Tuesday | Wednesday | Thursday | Friday | Sat
   deriving (Eq, Show,Enum)
 
 type Gregorian = (Integer, Int, Int) -- see Data.Time.Calendar
+
+dayOfWeek :: Day -> DayOfWeek
+dayOfWeek = gregorianDayOfWeek . toGregorian
+
+gregorianDayOfWeek :: Gregorian -> DayOfWeek
+gregorianDayOfWeek = toEnum . dayCode
 
 toNextDayOfWeek :: Day -> DayOfWeek -> Day
 toNextDayOfWeek date day = addDays (deltaDays (toGregorian date) day) date
@@ -28,44 +33,31 @@ deltaDays date day =
         days = if tmp < 0 then 7 + tmp else tmp
     in fromIntegral days
 
-gregorianDayOfWeek :: Gregorian -> DayOfWeek
-gregorianDayOfWeek = 
-    ([Sunday, Monday, Tuesday, Wednesday, Thursday, Friday, Saturday] !!) . 
-    dayCode
-
-dayOfWeek :: Day -> DayOfWeek
-dayOfWeek = gregorianDayOfWeek . toGregorian
-
 dayCode :: Gregorian -> Int
-dayCode (y,m,d) = (centuryCode y + yearCode y + monthCode m y + d) `mod` 7
+dayCode (year,month,day) = (centuryCode + yearCode + monthCode + day) `mod` 7
+  where
+    centuryMinus1 = year `div` 100
+    leapYear = isLeapYear year
 
-centuryCode :: Integer -> Int
-centuryCode x = case ((x`div`100)-16) `mod` 4 of
-                  0 -> 0
-                  1 -> 5
-                  2 -> 3
-                  3 -> 1
+    centuryCode = [0,5,3,1] !! fromIntegral ((centuryMinus1 - 16) `mod` 4)
 
-yearCode :: Integer -> Int
-yearCode y = let y' = fromIntegral $ y - ((y `div` 100) * 100)
-                 code = y' + floor (fromIntegral y' / 4)
-             in (if isLeapYear y then code - 1 else code) `mod` 7
+    yearCode = let y' = fromIntegral $ year - (centuryMinus1*100)
+               in y' + (y' `div` 4)
 
-monthCode :: Int -> Integer -> Int
-monthCode 1 year | isLeapYear year = 5
-                 | otherwise       = 6
-monthCode 2 year | isLeapYear year = 1
-                 | otherwise       = 2
-monthCode 3 _ = 2
-monthCode 4 _ = 5
-monthCode 5 _ = 0
-monthCode 6 _ = 3
-monthCode 7 _ = 5
-monthCode 8 _ = 1
-monthCode 9 _ = 4
-monthCode 10 _ = 6
-monthCode 11 _ = 2
-monthCode 12 _ = 4
-monthCode x _ = error $ "invalid month: " ++ show x
-
+    monthCode = case month of
+                  1 | leapYear  -> 5
+                    | otherwise -> 6
+                  2 | leapYear  -> 1
+                    | otherwise -> 2
+                  3 -> 2
+                  4 -> 5
+                  5 -> 0
+                  6 -> 3
+                  7 -> 5
+                  8 -> 1
+                  9 -> 4
+                  10 -> 6
+                  11 -> 2
+                  12 -> 4
+                  x  -> error $ "invalid month: " ++ show x
 
